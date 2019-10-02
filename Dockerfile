@@ -2,7 +2,7 @@ FROM egofelix/baseimage:debian
 
 MAINTAINER EgoFelix <docker@egofelix.de>
 
-RUN /root/package.sh curl nagios4 nagios-nrpe-plugin apache2
+RUN /root/package.sh curl nagios4 nagios-nrpe-plugin apache2 ca-certificates
 RUN /root/cleanup.sh
 RUN echo "" > /etc/nagios4/objects/localhost.cfg
 
