@@ -3,7 +3,6 @@ FROM egofelix/baseimage:debian
 MAINTAINER EgoFelix <docker@egofelix.de>
 
 RUN /root/package.sh curl nagios4 nagios-nrpe-plugin apache2
-RUN mkdir -p /etc/supervisor.d
 RUN /root/cleanup.sh
 
 COPY nagios4-cgi.conf /etc/apache2/conf-enabled/nagios4-cgi.conf
