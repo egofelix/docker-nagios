@@ -2,11 +2,6 @@ FROM egofelix/baseimage:debian
 
 MAINTAINER EgoFelix <docker@egofelix.de>
 
-#RUN /root/package.sh software-properties-common
-#RUN apt-add-repository non-free
-#RUN apt-add-repository contrib
-#RUN apt-get update
-
 RUN /root/package.sh curl nagios4 nagios-nrpe-plugin apache2
 RUN mkdir -p /etc/supervisor.d
 RUN /root/cleanup.sh
