@@ -5,6 +5,7 @@ MAINTAINER EgoFelix <docker@egofelix.de>
 RUN /root/package.sh curl nagios4 nagios-nrpe-plugin apache2 ca-certificates dnsutils
 RUN /root/cleanup.sh
 RUN echo "" > /etc/nagios4/objects/localhost.cfg
+RUN rm -f /var/run/apache2/apache2.pid
 
 COPY nagios4-cgi.conf /etc/apache2/conf-enabled/nagios4-cgi.conf
 COPY nagios4.ini /etc/supervisor.d/nagios4.ini
