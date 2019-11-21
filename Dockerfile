@@ -11,6 +11,7 @@ RUN /root/package.sh wget libsoap-lite-perl libxml-libxml-perl libjson-perl buil
 # Cleanup
 RUN /root/cleanup.sh
 RUN rm -f /var/run/apache2/apache2.pid
+RUN sed -i '/^PidFile/s//#&/' /etc/apache2/apache2.conf
 COPY nagios4-cgi.conf /etc/apache2/conf-enabled/nagios4-cgi.conf
 COPY nagios4.ini /etc/supervisor.d/nagios4.ini
 COPY httpd.ini /etc/supervisor.d/httpd.ini
