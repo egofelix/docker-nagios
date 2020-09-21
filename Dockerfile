@@ -24,6 +24,26 @@ RUN /root/package.sh file && cd /root && \
   mv check_ssl_cert /usr/lib/nagios/plugins/ && \
   rm -rf /root/check_ssl_cert-1.122.0
 
+
+# Install nagios4php
+RUN /root/package.sh rrdtool librrds-perl php7.3-gd php7.3-xml
+RUN cd /root && wget https://deac-ams.dl.sourceforge.net/project/pnp4nagios/PNP-0.6/pnp4nagios-0.6.26.tar.gz && tar -xvzf pnp4nagios-0.6.26.tar.gz
+RUN cd /root/pnp4nagios-0.6.26 && ./configure
+RUN cd /root/pnp4nagios-0.6.26 && make all
+RUN cd /root/pnp4nagios-0.6.26 && make install
+RUN cd /root/pnp4nagios-0.6.26 && make install-webconf
+RUN cd /root/pnp4nagios-0.6.26 && make install-config
+RUN cd /root/pnp4nagios-0.6.26 && make install-init
+
+RUN ln -s /etc/httpd/conf.d/pnp4nagios.conf /etc/apache2/conf-enabled/pnp4nagios.conf
+COPY conf.conf /etc/apache2/conf-enabled/pnp4nagios.conf
+
+RUN a2enmod rewrite
+RUN rm -f /usr/local/pnp4nagios/share/install.php
+
+# Fix sizeof bug
+RUN sed -i 's:if(sizeof(\$pages:if(is_array(\$pages) \&\& sizeof(\$pages:' /usr/local/pnp4nagios/share/application/models/data.php
+
 # Cleanup
 RUN /root/cleanup.sh
 RUN rm -f /var/run/apache2/apache2.pid
