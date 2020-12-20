@@ -166,6 +166,7 @@ RUN apk add --no-cache \
       php7-gd \
       ttf-dejavu \
       rrdtool \
+      bind-tools \
       fcgiwrap \
       supervisor \
       perl \
