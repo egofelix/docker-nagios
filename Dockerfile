@@ -130,6 +130,12 @@ RUN    echo -e "\n\n =====================\n  Configure pnp4nagios\n ===========
        make install-webconf && \
        make install-config && \
        make install-init && \
+       rm -f /usr/local/pnp4nagios/share/install.php && \
+# Fix sizeof bug
+       sed -i 's:if(sizeof(\$pages:if(is_array(\$pages) \&\& sizeof(\$pages:' /usr/local/pnp4nagios/share/application/models/data.php && \
+# Fix broken constructors
+       sed -i 's:function Services_JSON_Error(:function _construct(:' /usr/local/pnp4nagios/share/application/lib/json.php && \
+       sed -i 's:function Services_JSON(:function _construct(:' /usr/local/pnp4nagios/share/application/lib/json.php && \
        echo "pnp4nagios compiled successfully: OK"
 
 # Main Image
@@ -146,6 +152,7 @@ WORKDIR ${NAGIOS_HOME}
 
 # Copy binarys
 COPY --from=builder ${NAGIOS_HOME} ${NAGIOS_HOME}
+COPY --from=builder /usr/local/pnp4nagios/ /usr/local/pnp4nagios/
 
 # Install dependencies
 RUN apk add --no-cache \
@@ -153,6 +160,11 @@ RUN apk add --no-cache \
       bash \
       nginx \
       php7-fpm \
+      php7-iconv \
+      php7-session \
+      php7-simplexml \
+      ttf-dejavu \
+      rrdtool \
       fcgiwrap \
       supervisor \
       perl \
@@ -162,6 +174,7 @@ RUN apk add --no-cache \
     addgroup -S ${NAGIOS_GROUP} && \
     adduser  -S ${NAGIOS_USER} -G ${NAGIOS_CMDGROUP} && \
     chown -R nagios:nagios ${NAGIOS_HOME} && \
+    chown -R nagios:nagios /usr/local/pnp4nagios && \
     mkdir -p /run/nginx && \
     mkdir -p /run/fcgi && chown -R nagios:nagios /run/fcgi
 
@@ -172,6 +185,8 @@ RUN echo "@testing http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/ap
       perl-xml-libxml@testing \
       perl-html-tree@testing \
       perl-json@testing
+
+RUN echo "php_admin_value[error_reporting] = E_ALL & ~E_NOTICE & ~E_WARNING & ~E_STRICT & ~E_DEPRECATED" >> /etc/php7/php-fpm.d/www.conf
 
 # Copy Supervisor Units
 COPY nagios4.ini /etc/supervisor.d/nagios4.ini
