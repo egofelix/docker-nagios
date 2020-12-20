@@ -193,6 +193,7 @@ COPY nginx.ini /etc/supervisor.d/nginx.ini
 COPY php-fpm.ini /etc/supervisor.d/php-fpm.ini
 COPY fcgi.ini /etc/supervisor.d/fcgi.ini
 COPY nginx.conf /etc/nginx/nginx.conf
+COPY reload.sh /reload.sh
 
 # Run supervisor
 ENTRYPOINT /usr/bin/supervisord --nodaemon --configuration /etc/supervisord.conf
