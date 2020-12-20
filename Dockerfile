@@ -163,6 +163,7 @@ RUN apk add --no-cache \
       php7-iconv \
       php7-session \
       php7-simplexml \
+      php7-gd \
       ttf-dejavu \
       rrdtool \
       fcgiwrap \
@@ -185,8 +186,6 @@ RUN echo "@testing http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/ap
       perl-xml-libxml@testing \
       perl-html-tree@testing \
       perl-json@testing
-
-RUN echo "php_admin_value[error_reporting] = E_ALL & ~E_NOTICE & ~E_WARNING & ~E_STRICT & ~E_DEPRECATED" >> /etc/php7/php-fpm.d/www.conf
 
 # Copy Supervisor Units
 COPY nagios4.ini /etc/supervisor.d/nagios4.ini
