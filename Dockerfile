@@ -9,7 +9,6 @@ ENV NAGIOS_HOME=/opt/nagios \
     NAGIOS_BRANCH=nagios-4.4.6 \
     NAGIOS_PLUGINS_BRANCH=release-2.3.3 \
     NAGIOS_PLUGIN_NWC_HEALTH_VERSION=7.12.1.3 \
-    NAGIOS_PLUGIN_CHECK_DISK_BTRFS_VERSION=2.1.1 \
     PNP4NAGIOS_VERSION=0.6.26 \
     NRPE_BRANCH=nrpe-4.0.3
 
@@ -33,8 +32,6 @@ RUN    cd /tmp && \
        wget -q -O check_new_health.tar.gz "https://labs.consol.de/assets/downloads/nagios/check_nwc_health-${NAGIOS_PLUGIN_NWC_HEALTH_VERSION}.tar.gz" && \
        echo -n -e "OK\nDownloading pnp4nagios ${PNP4NAGIOS_VERSION} source code: " && \
        wget -q -O pnp4nagios.tar.gz "https://deac-ams.dl.sourceforge.net/project/pnp4nagios/PNP-0.6/pnp4nagios-${PNP4NAGIOS_VERSION}.tar.gz" && \
-       echo -n -e "OK\nDownloading check_disk_btrfs ${NAGIOS_PLUGIN_CHECK_DISK_BTRFS_VERSION} source code: " && \
-       wget -q -O check_disk_btrfs.tar.gz "https://exchange.icinga.com/netways/check_disk_btrfs/files/7769/check_disk_btrfs-v${NAGIOS_PLUGIN_CHECK_DISK_BTRFS_VERSION}.tar.gz" && \
        echo "OK"
 
 # Unpack sources
@@ -43,8 +40,7 @@ RUN cd /tmp && \
        tar zxf nagios-plugins.tar.gz && \
        tar zxf nrpe.tar.gz && \
        tar zxf check_new_health.tar.gz && \
-       tar zxf pnp4nagios.tar.gz && \
-       tar zxf check_disk_btrfs.tar.gz
+       tar zxf pnp4nagios.tar.gz
 
 # Compile Nagios Core
 RUN    cd  "/tmp/nagioscore-${NAGIOS_BRANCH}" && \
@@ -77,9 +73,9 @@ RUN    echo -e "\n\n ===========================\n  Configure Nagios Plugins\n =
                     --with-nagios-group=${NAGIOS_USER} \
                     --with-openssl \
                     --prefix=${NAGIOS_HOME} \
-                    --with-ping-command="/bin/ping -w %d -c %d %s" \
+                    --with-ping-command="/bin/ping -n -w %d -c %d %s" \
                     --with-ipv6 \
-                    --with-ping6-command="/bin/ping6 -w %d -c %d %s" && \
+                    --with-ping6-command="/bin/ping6 -n -w %d -c %d %s" && \
        echo "Nagios plugins configured: OK" && \
        echo -n "Replacing \"<sys\/poll.h>\" with \"<poll.h>\": " && \
        egrep -rl "\<sys\/poll.h\>" . | xargs sed -i 's/<sys\/poll.h>/<poll.h>/g' && \
@@ -142,13 +138,6 @@ RUN    echo -e "\n\n =====================\n  Configure pnp4nagios\n ===========
        sed -i 's:function Services_JSON(:function _construct(:' /usr/local/pnp4nagios/share/application/lib/json.php && \
        echo "pnp4nagios compiled successfully: OK"
 
-# Compile check_disk_btrfs
-RUN    cd  /tmp/*-check_disk_btrfs-* && \
-       echo "check_disk_btrfs configured: OK" && \
-       echo -e "\n\n ===========================\n  Compile check_disk_btrfs\n ===========================\n" && \
-       echo "check_disk_btrfs compiled successfully: OK" && \
-       cp check_disk_btrfs /opt/nagios/libexec/check_disk_btrfs
-
 # Main Image
 FROM alpine
 
@@ -175,7 +164,6 @@ RUN apk add --no-cache \
       php7-session \
       php7-simplexml \
       php7-gd \
-      python2 \
       ttf-dejavu \
       rrdtool \
       bind-tools \
@@ -191,6 +179,11 @@ RUN apk add --no-cache \
     chown -R nagios:nagios /usr/local/pnp4nagios && \
     mkdir -p /run/nginx && \
     mkdir -p /run/fcgi && chown -R nagios:nagios /run/fcgi && \
+    mkdir -p /run/php && chown -R nagios:nagios /run/php && \
+    sed -i "s#listen = 127.0.0.1:9000#listen = '/run/php/php-fpm.sock'#g" /etc/php7/php-fpm.d/www.conf && \
+    echo "listen.owner = nagios" >> /etc/php7/php-fpm.d/www.conf && \
+    echo "listen.group = nagios" >> /etc/php7/php-fpm.d/www.conf && \
+    echo "listen.mode = 0660" >> /etc/php7/php-fpm.d/www.conf && \
 # Add perl modules from testing required for check_nwc_health
     echo "@testing http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories && \
     apk add --no-cache \
